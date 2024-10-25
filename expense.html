@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Expenses</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Inline CSS for background image */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh; /* Full height of the viewport */
+            background-image: url('https://financialcareernews.com/wp-content/uploads/2022/08/Expenses-For-a-Business.jpg'); /* Background image */
+            background-size: cover; /* Cover the entire screen */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Prevent image repetition */
+            color: Green; /* Change text color for better visibility */
+        }
+
+        .header h1 {
+            color: white; /* Set header title color to white */
+            text-align: center; /* Center align the title */
+            padding: 20px 0; /* Add padding for better spacing */
+        }
+
+        .navbar {
+            text-align: center; /* Center navbar items */
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for navbar */
+        }
+
+        .navbar a {
+            color: white; /* Adjust navbar text color */
+            text-decoration: none;
+            padding: 14px 20px;
+            display: inline-block;
+        }
+
+        .container {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background for readability */
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 20px auto; /* Center container with margin */
+            text-align: center;
+        }
+
+        .card {
+            margin: 20px 0; /* Add margin between cards */
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5); /* Footer background */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Financial Management System - Expenses</h1>
+    </div>
+
+    <div class="navbar">
+        <a href="index.html">Dashboard</a>
+        <a href="income.html">Manage Income</a>
+        <a href="expense.html">Manage Expenses</a>
+        <a href="report.html">Submit Report</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Add New Expense</h2>
+            <input type="text" placeholder="Expense Description" id="expenseDescription" />
+            <input type="number" placeholder="Expense Amount" id="expenseAmount" />
+            <button onclick="addExpense()">Add Expense</button>
+        </div>
+
+        <div class="card">
+            <h2>Your Expenses</h2>
+            <div id="expenseList" class="expense-list">
+                <!-- Expenses will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Financial Management System
+    </div>
+
+    <script>
+        // Function to add a new expense
+        function addExpense() {
+            const description = document.getElementById('expenseDescription').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            // Validate input
+            if (!description || isNaN(amount)) {
+                alert('Please provide a valid description and amount.');
+                return;
+            }
+
+            // Make an AJAX request to add the expense
+            fetch('/add-expense', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ description: description, amount: amount }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message); // Show success message
+                document.getElementById('expenseDescription').value = ''; // Clear input field
+                document.getElementById('expenseAmount').value = ''; // Clear input field
+                fetchExpenses(); // Refresh expense list
+            })
+            .catch(error => {
+                console.error('Error adding expense:', error);
+            });
+        }
+
+        // Function to fetch and display all expenses
+        function fetchExpenses() {
+            fetch('/expenses')
+                .then(response => response.json())
+                .then(expenses => {
+                    const expenseList = document.getElementById('expenseList');
+                    expenseList.innerHTML = ''; // Clear the list before adding new items
+
+                    if (expenses.length > 0) {
+                        expenses.forEach(item => {
+                            const expenseItem = document.createElement('div');
+                            expenseItem.className = 'expense-item';
+                            expenseItem.innerHTML = `<strong>${item.description}</strong> - Amount: $${item.amount}`;
+                            expenseList.appendChild(expenseItem);
+                        });
+                    } else {
+                        expenseList.innerHTML = '<p>No expenses found.</p>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching expenses:', err);
+                });
+        }
+
+        // Fetch expenses on page load
+        window.onload = fetchExpenses;
+
+    </script>
+
+</body>
+</html>
